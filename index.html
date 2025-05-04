@@ -64,7 +64,6 @@
       transform: scale(1.1);
     }
 
-    /* Chessboard Styles */
     #board {
       width: 400px;
       height: 400px;
@@ -109,7 +108,7 @@
     <h2>About Me</h2>
     <div class="row">
       <img src="aris.png" alt="Profile Picture">
-      <p>Hi! I'm Aris Brunovskis, a computer science student who loves building web apps and playing with data.</p>
+      <p>Hi! I'm Aris Brunovskis, a computer science student at Virginia Tech.</p>
     </div>
   </div>
 
@@ -147,13 +146,29 @@
   </div>
 
   <div class="section">
+    <h2>Current Weather</h2>
+    <div class="row">
+      <img src="weather.png" alt="Weather Icon">
+      <p id="weather">Loading weather info...</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Stock Market Info</h2>
+    <div class="row">
+      <img src="stock.png" alt="Stock Icon">
+      <div id="stocks">Loading stock data...</div>
+    </div>
+  </div>
+
+  <div class="section">
     <h2>Interactive Chessboard</h2>
     <div id="board"></div>
   </div>
 
+  <!-- Chessboard JS -->
   <script>
     const board = document.getElementById('board');
-
     const squares = [];
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -193,6 +208,54 @@
         squares[i].appendChild(piece);
       }
     });
+  </script>
+
+  <!-- Weather API -->
+  <script>
+    const weatherApiKey = 'af275d4f663a61298ff62560abe94e85'; // Replace if expired
+    const city = 'Blacksburg';
+    fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${weatherApiKey}&units=imperial`)
+      .then(res => res.json())
+      .then(data => {
+        const temp = data.main?.temp;
+        const desc = data.weather?.[0]?.description;
+        document.getElementById("weather").textContent =
+          temp && desc ? `It's currently ${temp}°F with ${desc} in ${city}.` : "Weather data unavailable.";
+      })
+      .catch(() => {
+        document.getElementById("weather").textContent = "Failed to fetch weather data.";
+      });
+  </script>
+
+  <!-- Stock API -->
+  <script>
+    const stockApiKey = 'f5eb1041892d40e9848ce8c255165b0a'; // Replace if expired
+    const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA'];
+    const stocksDiv = document.getElementById("stocks");
+
+    function fetchStocks() {
+      stocksDiv.innerHTML = '';
+      stockSymbols.forEach(symbol => {
+        fetch(`https://api.twelvedata.com/price?symbol=${symbol}&apikey=${stockApiKey}`)
+          .then(res => res.json())
+          .then(data => {
+            const priceText = data.price
+              ? `${symbol} stock price: $${parseFloat(data.price).toFixed(2)}`
+              : `Failed to get ${symbol} price`;
+            const p = document.createElement("p");
+            p.textContent = priceText;
+            stocksDiv.appendChild(p);
+          })
+          .catch(() => {
+            const p = document.createElement("p");
+            p.textContent = `Failed to fetch ${symbol} data.`;
+            stocksDiv.appendChild(p);
+          });
+      });
+    }
+
+    fetchStocks();
+    setInterval(fetchStocks, 60000);
   </script>
 </body>
 </html>
